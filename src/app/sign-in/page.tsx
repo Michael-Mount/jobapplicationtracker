@@ -12,8 +12,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "@/lib/auth/auth-client";
 
 export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FocusEvent) {
+    e.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        setError(result.error.message ?? "Failed to Sign In");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("An unexpected error occourred");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white p-4">
       <Card className="w-full max-w-md border-gray-200 shadow-lg">
@@ -25,14 +60,21 @@ export default function SignIn() {
             Enter your credntials to acces your account
           </CardDescription>
         </CardHeader>
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <CardContent className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="emmail"
                 type="email"
                 placeholder="mmount.dev@gmail.com"
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
                 required
                 className="border-gray-300 focus:border-primary focus:ring-primary"
               />
@@ -43,6 +85,8 @@ export default function SignIn() {
                 id="password"
                 type="password"
                 minLength={8}
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
                 required
                 className="border-gray-300 focus:border-primary focus:ring-primary"
               />
@@ -52,11 +96,12 @@ export default function SignIn() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90"
+              disabled={loading}
             >
-              Sign In
+              {loading ? "Siging In..." : "Sign In"}
             </Button>
             <p className="text-center text-sm text-gray-600">
-              Dont Have an Account?
+              Dont Have an Account? <br />
               <Link
                 href="/sign-up"
                 className="font-medium text-primary hover:underline"
