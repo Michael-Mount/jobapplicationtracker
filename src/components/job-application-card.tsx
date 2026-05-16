@@ -21,7 +21,7 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Plus } from "lucide-react";
+
 import { Button } from "./ui/button";
 import {
   deleteJobApplication,
@@ -31,11 +31,13 @@ import {
 interface JobApplicationCardProps {
   job: JobApplication;
   columns: Column[];
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
 export default function JobApplicationCard({
   job,
   columns,
+  dragHandleProps,
 }: JobApplicationCardProps) {
   const [isediting, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -88,7 +90,10 @@ export default function JobApplicationCard({
 
   return (
     <>
-      <Card className="cursor-pointer transition-shadow hover:shadow-2xl">
+      <Card
+        className="cursor-pointer transition-shadow hover:shadow-2xl"
+        {...dragHandleProps}
+      >
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
