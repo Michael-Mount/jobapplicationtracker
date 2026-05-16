@@ -26,7 +26,7 @@ export default function SignUp() {
 
   const router = useRouter();
 
-  async function handleSubmit(e: React.FocusEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setError("");
