@@ -39,6 +39,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import { deleteColumn } from "@/lib/actions/job-applications";
 
 interface KanbanBoardProps {
   board: Board;
@@ -91,6 +92,19 @@ function DroppableColumn({
   const sortedJobs =
     column.jobApplications.sort((a, b) => a.order - b.order) || [];
 
+  async function handleDelete() {
+    try {
+      const result = await deleteColumn(column._id);
+
+      if (result?.error) {
+        console.error(result.error);
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to delete column:", err);
+    }
+  }
+
   return (
     <Card className="min-w-75 shrink-0 shadow-md p-0">
       <CardHeader
@@ -116,8 +130,12 @@ function DroppableColumn({
               <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={handleDelete}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

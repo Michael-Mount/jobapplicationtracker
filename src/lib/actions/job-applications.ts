@@ -261,3 +261,50 @@ export async function deleteJobApplication(id: string) {
 
   return { success: true };
 }
+
+export async function deleteColumn(id: string) {
+  const session = await getSession();
+
+  if (!session?.user) {
+    return { error: "Unauthorized" };
+  }
+
+  await connectDB();
+
+  const column = await Column.findById(id);
+
+  if (!column) {
+    return { error: "Column not found" };
+  }
+
+  const board = await Board.findOne({
+    _id: column.boardId,
+    userId: session.user.id,
+  });
+
+  if (!board) {
+    return { error: "Unauthorized" };
+  }
+
+  await JobApplicaiton.deleteMany({
+    columnId: column._id,
+    userId: session.user.id,
+  });
+
+  await Column.deleteOne({
+    _id: column._id,
+  });
+
+  await Board.updateOne(
+    { _id: board._id },
+    {
+      $pull: {
+        columns: column._id,
+      },
+    },
+  );
+
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
