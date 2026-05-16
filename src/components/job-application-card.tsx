@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { JobApplication, Column } from "@/lib/models/models.type";
 import { Card, CardContent } from "./ui/card";
 import { Edit2, ExternalLink, MoreVertical, Trash2 } from "lucide-react";
@@ -69,7 +70,7 @@ export default function JobApplicationCard({
     }
   }
 
-  async function handleUpdate(e: React.FormEvent) {
+  async function handleUpdate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
       const result = await updateJobApplication(job._id, {
