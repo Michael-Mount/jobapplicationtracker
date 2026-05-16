@@ -21,7 +21,7 @@ export interface IJobApplication extends Document {
 
 //Board -> Columns -> JobApplicaitons
 
-const JobApplicaitonSchema = new Schema<IJobApplication>(
+const JobApplicationSchema = new Schema<IJobApplication>(
   {
     company: {
       type: String,
@@ -86,5 +86,5 @@ const JobApplicaitonSchema = new Schema<IJobApplication>(
   },
 );
 
-export default mongoose.models.JobApplicaiton ||
-  mongoose.model<IJobApplication>("JobApplicaiton", JobApplicaitonSchema);
+export default mongoose.models.JobApplication ||
+  mongoose.model<IJobApplication>("JobApplication", JobApplicationSchema);

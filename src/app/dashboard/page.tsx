@@ -13,6 +13,9 @@ export default async function Dashboard() {
     name: "Job Hunt",
   }).populate({
     path: "columns",
+    populate: {
+      path: "jobApplications",
+    },
   });
 
   console.log(board);
