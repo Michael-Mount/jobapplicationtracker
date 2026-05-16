@@ -2,14 +2,14 @@ import KanbanBoard from "@/components/kanbanBoard";
 import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
 import { Board } from "@/lib/models";
+import { Suspense } from "react";
 
-export default async function Dashboard() {
-  const session = await getSession();
-
+async function getBoard(userId: string) {
+  "use cache";
   await connectDB();
 
-  const board = await Board.findOne({
-    userId: session?.user.id,
+  const boardDoc = await Board.findOne({
+    userId: userId,
     name: "Job Hunt",
   }).populate({
     path: "columns",
@@ -18,7 +18,16 @@ export default async function Dashboard() {
     },
   });
 
-  console.log(board);
+  if (!boardDoc) return null;
+
+  const board = JSON.parse(JSON.stringify(boardDoc));
+
+  return board;
+}
+
+async function DashboardPage() {
+  const session = await getSession();
+  const board = await getBoard(session?.user.id ?? "");
 
   return (
     <div className="min-h-screen bg-white">
@@ -27,11 +36,16 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-bold text-black">{board.name}</h1>
           <p className="text-gray-600">Track Your Job Applications</p>
         </div>
-        <KanbanBoard
-          board={JSON.parse(JSON.stringify(board))}
-          userId={session?.user.id}
-        />
+        <KanbanBoard board={board} userId={session?.user.id} />
       </div>
     </div>
+  );
+}
+
+export default async function Dashboard() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <DashboardPage />
+    </Suspense>
   );
 }
