@@ -23,7 +23,10 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Plus } from "lucide-react";
 import { Button } from "./ui/button";
-import { updateJobApplication } from "@/lib/actions/job-applications";
+import {
+  deleteJobApplication,
+  updateJobApplication,
+} from "@/lib/actions/job-applications";
 
 interface JobApplicationCardProps {
   job: JobApplication;
@@ -46,6 +49,15 @@ export default function JobApplicationCard({
     tags: job.tags?.join(", ") || "",
     description: job.description || "",
   });
+
+  async function handleDelete() {
+    try {
+      const result = await deleteJobApplication(job._id);
+    } catch (err) {
+      console.error("Failed to Delete Job Application", err);
+    }
+  }
+
   async function handleMove(newColumnId: string) {
     try {
       const result = await updateJobApplication(job._id, {
@@ -84,6 +96,7 @@ export default function JobApplicationCard({
               <p className="text-xs text-muted-foreground mb-2">
                 {job.company}
               </p>
+              <p className="text-xs text-muted-foreground mb-2">{job.salary}</p>
               {job.description && (
                 <p className="text-sm text-muted-foreground mb-2">
                   {job.description}
@@ -138,7 +151,10 @@ export default function JobApplicationCard({
                         ))}
                     </>
                   )}
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => handleDelete()}
+                  >
                     <Trash2 className="mr-2 h-4 w-4" /> Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>

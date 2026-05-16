@@ -1,5 +1,6 @@
 "use server";
 
+import { success } from "better-auth";
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplicaiton } from "../models";
@@ -231,4 +232,32 @@ export async function updateJobApplication(
   revalidatePath("/dashboard");
 
   return { data: JSON.parse(JSON.stringify(updated)) };
+}
+
+export async function deleteJobApplication(id: string) {
+  const session = await getSession();
+
+  if (!session?.user) {
+    return { error: "Unathorized" };
+  }
+
+  const jobApplication = await JobApplicaiton.findById(id);
+
+  if (!jobApplication) {
+    return { error: "Job Application not Found" };
+  }
+
+  if (jobApplication.userId !== session.user.id) {
+    return { error: "Unathorized" };
+  }
+
+  await Column.findByIdAndUpdate(jobApplication.columnId, {
+    $pull: { jobApplication: id },
+  });
+
+  await JobApplicaiton.deleteOne({ _id: id });
+
+  revalidatePath("/dashboard");
+
+  return { success: true };
 }
