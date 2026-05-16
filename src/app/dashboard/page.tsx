@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
 import { Board } from "@/lib/models";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 async function getBoard(userId: string) {
   "use cache";
@@ -28,6 +29,10 @@ async function getBoard(userId: string) {
 async function DashboardPage() {
   const session = await getSession();
   const board = await getBoard(session?.user.id ?? "");
+
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
 
   return (
     <div className="min-h-screen bg-white">
