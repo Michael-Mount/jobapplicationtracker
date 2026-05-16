@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { updateJobApplication } from "@/lib/actions/job-applications";
 
 interface JobApplicationCardProps {
   job: JobApplication;
@@ -18,6 +19,16 @@ export default function JobApplicationCard({
   job,
   columns,
 }: JobApplicationCardProps) {
+  async function handleMove(newColumnId: string) {
+    try {
+      const result = await updateJobApplication(job._id, {
+        columnId: newColumnId,
+      });
+    } catch (err) {
+      console.error("Failed to Move Job Application:", err);
+    }
+  }
+
   return (
     <>
       <Card className="cursor-pointer transition-shadow hover:shadow-2xl">
@@ -49,22 +60,23 @@ export default function JobApplicationCard({
                 <a
                   target="_blank"
                   href={job.jobUrl}
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ExternalLink />
+                  <ExternalLink className="h-3 w-3" />
                 </a>
               )}
             </div>
-            <div>
+            <div className="flex items-start gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
                     <MoreVertical />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem>
-                    <Edit2 />
+                    <Edit2 className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
                   {columns.length > 1 && (
@@ -72,14 +84,17 @@ export default function JobApplicationCard({
                       {columns
                         .filter((c) => c._id !== job.columnId)
                         .map((column, key) => (
-                          <DropdownMenuItem key={key}>
+                          <DropdownMenuItem
+                            key={key}
+                            onClick={() => handleMove(column._id)}
+                          >
                             Move to {column.name}
                           </DropdownMenuItem>
                         ))}
                     </>
                   )}
-                  <DropdownMenuItem>
-                    <Trash2 /> Delete
+                  <DropdownMenuItem className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
