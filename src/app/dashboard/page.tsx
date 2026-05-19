@@ -41,6 +41,7 @@ async function DashboardPage() {
           <h1 className="text-3xl font-bold text-black">{board.name}</h1>
           <p className="text-gray-600">Track Your Job Applications</p>
         </div>
+
         <KanbanBoard board={board} userId={session?.user.id} />
       </div>
     </div>

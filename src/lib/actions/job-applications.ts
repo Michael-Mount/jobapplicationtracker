@@ -1,6 +1,5 @@
 "use server";
 
-import { success } from "better-auth";
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplicaiton } from "../models";
@@ -19,6 +18,59 @@ interface JobApplicaitonData {
   description?: string;
 }
 
+interface ColumnData {
+  name: string;
+  color: string;
+  boardId: string;
+}
+
+//Create a Column
+export async function createColumn(data: ColumnData) {
+  const session = await getSession();
+
+  if (!session?.user) {
+    return { error: "Unathorized" };
+  }
+
+  await connectDB();
+
+  const { name, color, boardId } = data;
+
+  if (!boardId || !name) {
+    return { Error: "Missing Required Fields" };
+  }
+
+  //Verify if User has ownership of board
+  const board = await Board.findOne({
+    _id: boardId,
+    userId: session.user.id,
+  });
+
+  if (!board) {
+    return { error: "Board Not Found" };
+  }
+
+  const maxOrder = (await Column.findOne({ boardId })
+    .sort({ order: -1 })
+    .select("order")
+    .lean()) as { order: number } | null;
+
+  const column = await Column.create({
+    name,
+    color,
+    boardId,
+    order: maxOrder ? maxOrder.order + 1 : 0,
+  });
+
+  await Board.findByIdAndUpdate(boardId, {
+    $push: { columns: column._id },
+  });
+  revalidatePath("/dashboard");
+
+  return { data: JSON.parse(JSON.stringify(column)) };
+}
+
+//Create a Job Applicaiton
 export async function createJobApplicaiton(data: JobApplicaitonData) {
   const session = await getSession();
 
@@ -94,6 +146,7 @@ export async function createJobApplicaiton(data: JobApplicaitonData) {
   return { data: JSON.parse(JSON.stringify(jobApplication)) };
 }
 
+//Change the data in the Job application and make them drag-able
 export async function updateJobApplication(
   id: string,
   updates: {
@@ -234,6 +287,7 @@ export async function updateJobApplication(
   return { data: JSON.parse(JSON.stringify(updated)) };
 }
 
+//Delete Job Application Card
 export async function deleteJobApplication(id: string) {
   const session = await getSession();
 
@@ -262,6 +316,7 @@ export async function deleteJobApplication(id: string) {
   return { success: true };
 }
 
+//Delete a Column
 export async function deleteColumn(id: string) {
   const session = await getSession();
 

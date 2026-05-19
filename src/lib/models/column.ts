@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IColumn extends Document {
   name: string;
+  color?: string;
   boardId: mongoose.Types.ObjectId;
   order: number;
   jobApplications: mongoose.Types.ObjectId[];
@@ -16,6 +17,10 @@ const ColumnSchema = new Schema<IColumn>(
     name: {
       type: String,
       required: true,
+    },
+    color: {
+      type: String,
+      default: "#2596be",
     },
     boardId: {
       type: mongoose.Types.ObjectId,

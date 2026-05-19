@@ -71,17 +71,16 @@ export default function CreateJobApplicationDialog({
         render={
           <Button
             variant="outline"
-            className="w-full mb-4 justify-start text-muted-foreground"
+            className="w-full mb-4 justify-center text-muted-foreground"
           />
         }
       >
         <Plus className="mr-2 h-4 w-4" />
-        Add Job
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add Job Application</DialogTitle>
-          <DialogDescription>track a new job application</DialogDescription>
+          <DialogDescription>Track a New Job Application</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handelSubmit}>
           <div className="space-y-4">
@@ -147,7 +146,7 @@ export default function CreateJobApplicationDialog({
               <Label htmlFor="tags">Tags (comma-separated)</Label>
               <Input
                 id="tags"
-                placeholder="Reat, Tailwind, High Pay"
+                placeholder="React, TypeScript, MongoDB"
                 value={formData.tags}
                 onChange={(e) =>
                   setFormData({ ...formData, tags: e.target.value })

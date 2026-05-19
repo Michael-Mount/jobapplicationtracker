@@ -40,6 +40,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { deleteColumn } from "@/lib/actions/job-applications";
+import CreateColumnDialog from "./CreateColumnDialog";
 
 interface KanbanBoardProps {
   board: Board;
@@ -47,25 +48,20 @@ interface KanbanBoardProps {
 }
 
 interface ColCongif {
-  color: string;
   icon: React.ReactNode;
 }
 
 const COLUMN_CONFIG: Array<ColCongif> = [
   {
-    color: "bg-cyan-500",
     icon: <CheckCircle2 className="h-4 w-4" />,
   },
   {
-    color: "bg-green-500",
     icon: <Mic className="h-4 w-4" />,
   },
   {
-    color: "bg-yellow-500",
     icon: <Award className="h-4 w-4" />,
   },
   {
-    color: "bg-red-500",
     icon: <XCircle className="h-4 w-4" />,
   },
 ];
@@ -108,7 +104,8 @@ function DroppableColumn({
   return (
     <Card className="min-w-75 shrink-0 shadow-md p-0">
       <CardHeader
-        className={`${config.color} text-white rounded-t-lg pb-3 pt-3`}
+        className={` text-white rounded-t-lg pb-3 pt-3`}
+        style={{ backgroundColor: column.color || "#2596be" }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -348,8 +345,10 @@ export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
               />
             );
           })}
+          <CreateColumnDialog boardId={board._id} />
         </div>
       </div>
+
       <DragOverlay>
         {activeJob ? (
           <div className="opacity-50">
