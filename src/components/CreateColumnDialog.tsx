@@ -67,7 +67,7 @@ export default function CreateColumnDialog({
         </DialogHeader>
         <form className="space-y-4" onSubmit={handelSubmit}>
           <div className="space-y-4">
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col items-center">
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
@@ -83,6 +83,7 @@ export default function CreateColumnDialog({
                 onChange={(color) => setFormData({ ...formData, color })}
               />
               <Input
+                className="w-18"
                 id="color"
                 value={formData.color}
                 onChange={(e) =>
