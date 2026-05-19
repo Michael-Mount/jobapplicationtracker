@@ -70,6 +70,75 @@ export async function createColumn(data: ColumnData) {
   return { data: JSON.parse(JSON.stringify(column)) };
 }
 
+//Update an existing column
+export async function updateColumn(
+  id: string,
+  updates: { name?: string; color?: string },
+) {
+  const session = await getSession();
+
+  if (!session?.user) {
+    return {
+      error: "Unathorized",
+    };
+  }
+
+  const column = await Column.findById(id);
+
+  if (!column) {
+    return { error: "Column Not Found" };
+  }
+
+  const board = await Board.findOne({
+    _id: column.boardId,
+    userId: session.user.id,
+  });
+
+  if (!board) {
+    return { error: "Unathorized" };
+  }
+
+  const updatedData: { name?: string; color?: string } = {};
+
+  if (updates.name !== undefined) {
+    const trimmedName = updates.name.trim();
+
+    if (!trimmedName) {
+      return { error: "Column name cannot be empty" };
+    }
+
+    updatedData.name = trimmedName;
+  }
+
+  function isValidHexColor(value: string) {
+    return /^#[0-9A-Fa-f]{6}$/.test(value);
+  }
+
+  if (updates.color !== undefined) {
+    if (!isValidHexColor(updates.color)) {
+      return { error: "Invalid color value" };
+    }
+
+    updatedData.color = updates.color;
+  }
+
+  if (Object.keys(updatedData).length === 0) {
+    return { error: "No valid updates provided" };
+  }
+
+  const updatedColumn = await Column.findByIdAndUpdate(
+    id,
+    { $set: updatedData },
+    { new: true },
+  );
+
+  revalidatePath("/dashboard");
+
+  return {
+    data: JSON.parse(JSON.stringify(updatedColumn)),
+  };
+}
+
 //Create a Job Applicaiton
 export async function createJobApplicaiton(data: JobApplicaitonData) {
   const session = await getSession();
@@ -171,7 +240,7 @@ export async function updateJobApplication(
   const jobApplication = await JobApplicaiton.findById(id);
 
   if (!jobApplication) {
-    return { error: "Job Applicaiton not found" };
+    return { error: "Job Applicaiton Not found" };
   }
 
   if (jobApplication.userId !== session.user.id) {

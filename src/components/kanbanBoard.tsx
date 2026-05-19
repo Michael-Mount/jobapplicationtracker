@@ -3,6 +3,7 @@
 import { Board, Column, JobApplication } from "@/lib/models/models.type";
 import {
   Award,
+  Brush,
   Calendar,
   CheckCircle2,
   Mic,
@@ -39,8 +40,19 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
-import { deleteColumn } from "@/lib/actions/job-applications";
+import { deleteColumn, updateColumn } from "@/lib/actions/job-applications";
 import CreateColumnDialog from "./CreateColumnDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+
+import { HexColorPicker } from "react-colorful";
 
 interface KanbanBoardProps {
   board: Board;
@@ -77,6 +89,11 @@ function DroppableColumn({
   boardId: string;
   sortedColumns: Column[];
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: column.name,
+    color: column.color || "#2596be",
+  });
   const { setNodeRef, isOver } = useDroppable({
     id: column._id,
     data: {
@@ -87,6 +104,26 @@ function DroppableColumn({
 
   const sortedJobs =
     column.jobApplications.sort((a, b) => a.order - b.order) || [];
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+
+    try {
+      const result = await updateColumn(column._id, {
+        name: formData.name,
+        color: formData.color,
+      });
+
+      if (result?.error) {
+        console.error("Failed to update column:", result.error);
+        return;
+      }
+
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to update column:", err);
+    }
+  }
 
   async function handleDelete() {
     try {
@@ -102,61 +139,131 @@ function DroppableColumn({
   }
 
   return (
-    <Card className="min-w-75 shrink-0 shadow-md p-0">
-      <CardHeader
-        className={` text-white rounded-t-lg pb-3 pt-3`}
-        style={{ backgroundColor: column.color || "#2596be" }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {config.icon}
-            <CardTitle className="text-white text-base font-semibold">
-              {column.name}
-            </CardTitle>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-white hover:bg-white/20"
-                />
-              }
-            >
-              <MoreVertical className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={handleDelete}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      <CardContent
-        ref={setNodeRef}
-        className={`space-y-2 pt-4 bg-gray-50/50 min-h[400px] rounded-b-lg ${isOver ? "ring-2 ring-blue-500" : ""}`}
-      >
-        <SortableContext
-          items={sortedJobs.map((job) => job._id)}
-          strategy={verticalListSortingStrategy}
+    <>
+      <Card className="min-w-75 shrink-0 shadow-md p-0">
+        <CardHeader
+          className={` text-white rounded-t-lg pb-3 pt-3`}
+          style={{ backgroundColor: column.color }}
         >
-          {sortedJobs.map((job, key) => (
-            <SortableJobCard
-              key={key}
-              job={{ ...job, columnId: job.columnId || column._id }}
-              columns={sortedColumns}
-            />
-          ))}
-        </SortableContext>
-        <CreateJobApplicationDialog columnId={column._id} boardId={boardId} />
-      </CardContent>
-    </Card>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {config.icon}
+              <CardTitle className="text-white text-base font-semibold">
+                {column.name}
+              </CardTitle>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className=" text-white hover:bg-white/20"
+                  />
+                }
+              >
+                <MoreVertical className="4 -4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Brush />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="" />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent
+          ref={setNodeRef}
+          className={`space-y-2 pt-4 bg-gray-50/50 min-h[400px] rounded-b-lg ${isOver ? "ring-2 ring-blue-500" : ""}`}
+        >
+          <SortableContext
+            items={sortedJobs.map((job) => job._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {sortedJobs.map((job, key) => (
+              <SortableJobCard
+                key={key}
+                job={{ ...job, columnId: job.columnId || column._id }}
+                columns={sortedColumns}
+              />
+            ))}
+          </SortableContext>
+          <CreateJobApplicationDialog columnId={column._id} boardId={boardId} />
+        </CardContent>
+      </Card>
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Column</DialogTitle>
+          </DialogHeader>
+
+          <form className="space-y-4" onSubmit={handleUpdate}>
+            <div className="space-y-4 flex flex-col items-center">
+              <Label htmlFor="name">Name *</Label>
+
+              <Input
+                id="name"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    name: e.target.value,
+                  })
+                }
+              />
+
+              <Label htmlFor="color">Color</Label>
+
+              <HexColorPicker
+                color={formData.color}
+                onChange={(color) =>
+                  setFormData({
+                    ...formData,
+                    color,
+                  })
+                }
+              />
+
+              <Input
+                className="w-24"
+                id="color"
+                value={formData.color}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    color: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </Button>
+
+              <Button type="submit" style={{ backgroundColor: formData.color }}>
+                Update Column
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
