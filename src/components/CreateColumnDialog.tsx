@@ -2,6 +2,7 @@
 
 import { createColumn } from "@/lib/actions/job-applications";
 import { useState } from "react";
+import { HexColorPicker } from "react-colorful";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ interface CreateColumnDialogProps {
 
 const INITIAL_FORM_DATA = {
   name: "",
-  color: "",
+  color: "#2596be",
 };
 
 export default function CreateColumnDialog({
@@ -34,6 +35,7 @@ export default function CreateColumnDialog({
     e.preventDefault();
 
     try {
+      console.log(JSON.stringify({ ...formData }));
       const result = await createColumn({
         ...formData,
         boardId,
@@ -76,6 +78,10 @@ export default function CreateColumnDialog({
                 }
               />
               <Label htmlFor="color">Color </Label>
+              <HexColorPicker
+                color={formData.color}
+                onChange={(color) => setFormData({ ...formData, color })}
+              />
               <Input
                 id="color"
                 value={formData.color}
@@ -93,7 +99,9 @@ export default function CreateColumnDialog({
             >
               Cancel
             </Button>
-            <Button type="submit">Add New Column</Button>
+            <Button type="submit" style={{ backgroundColor: formData.color }}>
+              Add New Column
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
